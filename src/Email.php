@@ -141,7 +141,7 @@ class Email extends Section
 		foreach(explode($pair_separator, $in) as $kv_pair)
 		{
 			$kv_pair = explode($kv_separator, $kv_pair, 2);
-			$out[trim($kv_pair[0])] = trim($kv_pair[1]);
+			$out[trim($kv_pair[0])] = trim($kv_pair[1] ?? "");
 		}
 		return $out;
 	}
