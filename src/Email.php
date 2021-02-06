@@ -119,7 +119,7 @@ class Email extends Section
 		}
 		if($canonicalization == "relaxed")
 		{
-			$body = preg_replace("/\s+/", " ", $body);
+			$body = preg_replace("/ +/", " ", $body);
 		}
 		return $body;
 	}
