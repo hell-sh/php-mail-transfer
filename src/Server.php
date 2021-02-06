@@ -234,7 +234,7 @@ class Server
 							break;
 						case "QUIT":
 							$client->close();
-							break;
+							break 2;
 					}
 				}
 				else if($line == ".")
