@@ -16,6 +16,7 @@ The only reason I'm publishing this so early is so that I can build a custom ser
   - Deal with multiple `DKIM-Signature`s (only 1 has to pass for DMARC)
 - DKIM Subdomain Considerations
 - DNSBL: https://www.spamhaus.org/faq/section/DNSBL%20Usage
+- Server: Dynamic & static SIZE
 
 ## Examples
 
