@@ -3,4 +3,5 @@ vendor/
 composer.lock
 /client.php
 /server.php
+/tests-private.php
 *.pem
