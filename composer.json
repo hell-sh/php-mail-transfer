@@ -1,0 +1,19 @@
+{
+	"type": "library",
+	"name": "hell-sh/mail-transfer",
+	"description": "A library allowing you to easily write custom email servers and clients in PHP.",
+	"autoload": {
+		"psr-4": {
+			"Email\\": "src/"
+		}
+	},
+	"require": {
+		"php": ">=7.1",
+		"ext-openssl": "*",
+		"hell-sh/asyncore": "^2.1",
+		"mlocati/spf-lib": "^3.1"
+	},
+	"require-dev": {
+		"hell-sh/nose": "^1.1"
+	}
+}
