@@ -232,6 +232,9 @@ class Server
 							$client->data = "";
 							$client->writeLine("354");
 							break;
+						case "QUIT":
+							$client->close();
+							break;
 					}
 				}
 				else if($line == ".")
