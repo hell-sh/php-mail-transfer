@@ -2,6 +2,16 @@
 namespace Email;
 abstract class Section
 {
+	/**
+	 * @var array $headers
+	 */
+	var $headers;
+
+	function __construct(array $headers)
+	{
+		$this->headers = $headers;
+	}
+
 	abstract function getEffectiveHeaders(): array;
 
 	static function normaliseHeaderCasing(string $key): string

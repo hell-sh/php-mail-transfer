@@ -8,17 +8,13 @@ class Email extends Section
 	const SEND_PERM_FAIL = 2;
 
 	/**
-	 * @var array $headers
-	 */
-	var $headers;
-	/**
 	 * @var Content|null $content
 	 */
 	var $content;
 
 	function __construct(array $headers, ?Content $content = null)
 	{
-		$this->headers = $headers;
+		parent::__construct($headers);
 		$this->content = $content;
 	}
 
