@@ -342,19 +342,22 @@ class Email extends Section
 			$data .= $safe_line.$line."\r\n";
 		}
 		$data .= "\r\n";
-		foreach(explode("\r\n", $this->content->getBody()) as $row)
+		if($this->content instanceof Content)
 		{
-			$i = 0;
-			while(strlen($row) > $i)
+			foreach(explode("\r\n", $this->content->getBody()) as $row)
 			{
-				$line = substr($row, $i, $line_length);
-				if(substr($line, 0, 1) == ".")
+				$i = 0;
+				while(strlen($row) > $i)
 				{
-					$data .= ".";
+					$line = substr($row, $i, $line_length);
+					if(substr($line, 0, 1) == ".")
+					{
+						$data .= ".";
+					}
+					$data .= $line;
+					$data .= "\r\n";
+					$i += $line_length;
 				}
-				$data .= $line;
-				$data .= "\r\n";
-				$i += $line_length;
 			}
 		}
 		return $data;
