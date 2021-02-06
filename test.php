@@ -55,6 +55,26 @@ function testSmtpData()
 	Nose::assertEquals($email->content->text, $email_from_data->content->text);
 }
 
+function testUnfoldableHeader()
+{
+	$email = new Email([
+		"Test" => str_repeat("a", 200)
+	]);
+	$smtp_data = $email->getSmtpData(78);
+	$i = 0;
+	foreach(explode("\r\n", $smtp_data) as $line)
+	{
+		if($line)
+		{
+			$i = 0;
+		}
+		else
+		{
+			Nose::assertTrue(++$i < 3);
+		}
+	}
+}
+
 function testLookups()
 {
 	// With MX Record

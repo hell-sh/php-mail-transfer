@@ -333,7 +333,7 @@ class Email extends Section
 					$line = "";
 				}
 				$line .= $c;
-				if(strlen($safe_line) + strlen($line) >= $line_length)
+				if($safe_line && strlen($safe_line) + strlen($line) >= $line_length)
 				{
 					$data .= $safe_line."\r\n";
 					$safe_line = "";
