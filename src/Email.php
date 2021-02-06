@@ -424,7 +424,8 @@ class Email extends Section
 		$encoding = $encoding ?? EncodingSevenbit::class;
 		$email->content = new ContentText(
 			call_user_func($encoding.'::decode', $body),
-			$email->getHeader("Content-Type") ?: "text/plain"
+			$email->getHeader("Content-Type") ?: "text/plain",
+			$encoding
 		);
 		return $email;
 	}
