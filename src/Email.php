@@ -301,29 +301,45 @@ class Email extends Section
 		return $this->content->getBody();
 	}
 
-	function getSmtpData(int $line_length = 998): string
+	function getSmtpData(int $line_length = 78): string
 	{
 		$data = "";
 		foreach($this->getEffectiveHeaders() as $key => $value)
 		{
-			$row = "$key: $value";
-			$first = true;
-			$i = 0;
-			while(strlen($row) > $i)
+			$safe_line = "";
+			$line = "";
+			$cr = false;
+			foreach(str_split("$key: $value") as $c)
 			{
-				if($first)
+				if($c == "\r")
 				{
-					$first = false;
-					$data .= substr($row, $i, $line_length);
-					$i += $line_length;
+					$cr = true;
+					continue;
 				}
-				else
+				if($cr)
 				{
-					$data .= " ".substr($row, $i, $line_length - 1);
-					$i += $line_length - 1;
+					$cr = false;
+					if($c == "\n")
+					{
+						$data .= $safe_line.$line."\r\n";
+						$safe_line = "";
+						$line = "";
+						continue;
+					}
 				}
-				$data .= "\r\n";
+				if($c == " " || $c == "\t")
+				{
+					$safe_line .= $line;
+					$line = "";
+				}
+				$line .= $c;
+				if(strlen($safe_line) + strlen($line) >= $line_length)
+				{
+					$data .= $safe_line."\r\n";
+					$safe_line = "";
+				}
 			}
+			$data .= $safe_line.$line."\r\n";
 		}
 		$data .= "\r\n";
 		foreach(explode("\r\n", $this->content->getBody()) as $row)
@@ -389,7 +405,7 @@ class Email extends Section
 			$header_i = strlen($data);
 		}
 		return Email::fromData2(
-			str_replace("\r\n ", "", substr($data, 0, $header_i)),
+			str_replace(["\r\n ", "\r\n\t"], [" ", "\t"], substr($data, 0, $header_i)),
 			substr($data, $header_i + 4)
 		);
 	}

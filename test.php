@@ -43,12 +43,12 @@ function testHeaderCasing()
 function testSmtpData()
 {
 	$email = new Email([
-		"Test" => str_repeat("a", 200)
+		"Test" => str_repeat("a", 50)." ".str_repeat("a", 50)
 	], new ContentTextPlain(str_repeat("a", 200)));
 	$smtp_data = $email->getSmtpData(78);
 	foreach(explode("\r\n", $smtp_data) as $line)
 	{
-		Nose::assertTrue(strlen($line) < 80);
+		Nose::assertTrue(strlen($line) <= 80);
 	}
 	$email_from_data = Email::fromSmtpData($smtp_data);
 	Nose::assertEquals($email->getHeader("Test"), $email_from_data->getHeader("Test"));
