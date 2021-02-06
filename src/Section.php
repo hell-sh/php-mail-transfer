@@ -59,7 +59,7 @@ abstract class Section
 		{
 			$data .= "$key: $value\r\n";
 		}
-		$data .= "\r\n".$this->content->getBody();
+		$data .= "\r\n".$this->getBody();
 		return $data;
 	}
 }

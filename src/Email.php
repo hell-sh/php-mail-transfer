@@ -105,7 +105,7 @@ class Email extends Section
 
 	function getCanonicalizedBody(string $canonicalization): string
 	{
-		$body = $this->content->getBody();
+		$body = $this->getBody();
 		if(substr($body, -2) == "\r\n")
 		{
 			while(substr($body, -4) == "\r\n\r\n")
@@ -304,7 +304,7 @@ class Email extends Section
 
 	function getBody(): string
 	{
-		return $this->content->getBody();
+		return $this->content instanceof Content ? $this->content->getBody() : "";
 	}
 
 	function getSmtpData(int $line_length = 78): string
