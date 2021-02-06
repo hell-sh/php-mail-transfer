@@ -360,10 +360,10 @@ class Email extends Section
 		return $data;
 	}
 
-	function sendToRecipient(int $timeout = Client::DEFAULT_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE): int
+	function sendToRecipient(int $connect_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE): int
 	{
 		$status = self::SEND_PERM_FAIL;
-		$con = $this->getRecipient()->createConnection($timeout, $log_line_function);
+		$con = $this->getRecipient()->createConnection($connect_timeout, $read_timeout, $log_line_function);
 		if($con instanceof Connection)
 		{
 			$con->smartHandshake(function() use (&$status, $con)

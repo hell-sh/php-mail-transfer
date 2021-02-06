@@ -2,14 +2,15 @@
 namespace Email;
 class Client extends Connection
 {
-	const DEFAULT_TIMEOUT = 3;
+	const DEFAULT_CONNECT_TIMEOUT = 2;
+	const DEFAULT_READ_TIMEOUT = 10;
 
-	function __construct(string $server, int $timeout = Client::DEFAULT_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
+	function __construct(string $server, int $connect_read_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
 	{
-		parent::__construct($server, $timeout, $log_line_function);
-		if(!$this->open(25, $errstr_25))
+		parent::__construct($server, $read_timeout, $log_line_function);
+		if(!$this->open(25, $errstr_25, $connect_read_timeout))
 		{
-			if(!$this->open(587, $errstr_587))
+			if(!$this->open(587, $errstr_587, $connect_read_timeout))
 			{
 				if($errstr_25 == $errstr_587)
 				{
@@ -40,9 +41,9 @@ class Client extends Connection
 		}
 	}
 
-	private function open(int $port, &$errstr): bool
+	private function open(int $port, &$errstr, int $connect_timeout): bool
 	{
-		$this->stream = @fsockopen($this->remote_name, $port, $errno, $errstr, $this->timeout);
+		$this->stream = @fsockopen($this->remote_name, $port, $errno, $errstr, $connect_timeout);
 		if(!$this->stream)
 		{
 			$errstr .= " ($errno)";
@@ -55,7 +56,7 @@ class Client extends Connection
 
 	private function readResponse(callable $callback, ?callable $on_fail): void
 	{
-		$deadline = microtime(true) + $this->timeout;
+		$deadline = microtime(true) + $this->read_timeout;
 		$response = "";
 		$this->startLoop(function() use ($callback, $on_fail, $deadline, &$line, &$response): void
 		{

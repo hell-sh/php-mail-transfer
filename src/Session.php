@@ -2,7 +2,7 @@
 namespace Email;
 class Session extends Connection
 {
-	const DEFAULT_TIMEOUT = 3;
+	const DEFAULT_READ_TIMEOUT = 3;
 
 	/**
 	 * @var float $last_command
@@ -29,7 +29,7 @@ class Session extends Connection
 	 */
 	var $data = null;
 
-	function __construct($stream, int $timeout = Session::DEFAULT_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
+	function __construct($stream, int $read_timeout = Session::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
 	{
 		stream_set_blocking($stream, false);
 		$this->stream = $stream;
@@ -38,7 +38,7 @@ class Session extends Connection
 		{
 			$addr = "[$addr]";
 		}
-		parent::__construct($addr.":".$port, $timeout, $log_line_function);
+		parent::__construct($addr.":".$port, $read_timeout, $log_line_function);
 		$this->last_command = $this->constructed_at;
 		$this->initStream();
 		$this->log(self::LOGPREFIX_BIDIR, "Connection established");

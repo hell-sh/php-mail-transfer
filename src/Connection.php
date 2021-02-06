@@ -32,9 +32,9 @@ class Connection
 	 */
 	var $remote_name;
 	/**
-	 * @var int $timeout
+	 * @var int $read_timeout
 	 */
-	var $timeout;
+	var $read_timeout;
 	/**
 	 * @var callable|null $log_line_function
 	 */
@@ -65,11 +65,11 @@ class Connection
 	 */
 	var $capabilities = [];
 
-	function __construct(string $remote_name, int $timeout, ?callable $log_line_function = Connection::LOGFUNC_NONE)
+	function __construct(string $remote_name, int $read_read_timeout, ?callable $log_line_function = Connection::LOGFUNC_NONE)
 	{
 		$this->constructed_at = microtime(true);
 		$this->remote_name = $remote_name;
-		$this->timeout = $timeout;
+		$this->read_timeout = $read_read_timeout;
 		$this->log_line_function = $log_line_function;
 	}
 
@@ -85,7 +85,7 @@ class Connection
 
 	function initStream(): void
 	{
-		stream_set_timeout($this->stream, $this->timeout);
+		stream_set_timeout($this->stream, $this->read_timeout);
 		$this->open_condition = Asyncore::condition(function(): bool
 		{
 			return $this->isOpen();

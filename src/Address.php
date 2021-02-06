@@ -56,13 +56,13 @@ class Address
 		return [$domain];
 	}
 
-	function createConnection(int $timeout = Client::DEFAULT_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE): ?Client
+	function createConnection(int $connect_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE): ?Client
 	{
 		foreach($this->getServers() as $server)
 		{
 			try
 			{
-				return new Client($server, $timeout, $log_line_function);
+				return new Client($server, $connect_timeout, $read_timeout, $log_line_function);
 			}
 			catch(ExceptionConnectionNotEstablished $e)
 			{

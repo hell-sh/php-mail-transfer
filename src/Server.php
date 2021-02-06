@@ -20,9 +20,9 @@ class Server
 	 */
 	var $streams;
 	/**
-	 * @var int $session_timeout
+	 * @var int $session_read_timeout
 	 */
-	var $session_timeout;
+	var $session_read_timeout;
 	/**
 	 * @var callable|null $session_log_line_function
 	 */
@@ -44,7 +44,7 @@ class Server
 	 */
 	var $on_email_received = null;
 
-	function __construct(?string $public_key_file = null, ?string $private_key_file = null, array $bind_addresses = self::BIND_ADDR_ALL, array $bind_ports = self::BIND_PORT_DEFAULT, int $session_timeout = Session::DEFAULT_TIMEOUT, ?callable $session_log_line_function = Connection::LOGFUNC_NONE)
+	function __construct(?string $public_key_file = null, ?string $private_key_file = null, array $bind_addresses = self::BIND_ADDR_ALL, array $bind_ports = self::BIND_PORT_DEFAULT, int $session_read_timeout = Session::DEFAULT_READ_TIMEOUT, ?callable $session_log_line_function = Connection::LOGFUNC_NONE)
 	{
 		$this->streams = [];
 		$this->supports_encryption = $public_key_file && $private_key_file;
@@ -85,7 +85,7 @@ class Server
 				array_push($this->streams, $stream);
 			}
 		}
-		$this->session_timeout = $session_timeout;
+		$this->session_read_timeout = $session_read_timeout;
 		$this->session_log_line_function = $session_log_line_function;
 		$this->clients = new SplObjectStorage();
 	}
@@ -102,7 +102,7 @@ class Server
 		{
 			while(($client = @stream_socket_accept($stream, 0)) !== false)
 			{
-				$session = new Session($client, $this->session_timeout, $this->session_log_line_function);
+				$session = new Session($client, $this->session_read_timeout, $this->session_log_line_function);
 				$session->writeLine("220 ".Machine::getHostname());
 				$this->clients->attach($session);
 				$session->open_condition->onFalse(function() use ($session)
@@ -141,9 +141,9 @@ class Server
 			$line = $client->readLine();
 			if(!$line)
 			{
-				if(microtime(true) > $client->last_command + $client->timeout)
+				if(microtime(true) > $client->last_command + $client->read_timeout)
 				{
-					$client->log(Connection::LOGPREFIX_INFO, "Received no command within {$client->timeout} seconds");
+					$client->log(Connection::LOGPREFIX_INFO, "Received no command within {$client->read_timeout} seconds");
 					$client->close();
 				}
 				continue;

@@ -27,7 +27,7 @@ require "vendor/autoload.php";
 (new Email\Server(
     __DIR__."/fullchain.pem", __DIR__."/privkey.pem",
     Email\Server::BIND_ADDR_ALL, Email\Server::BIND_PORT_DEFAULT,
-    Email\Session::DEFAULT_TIMEOUT, Email\Connection::LOGFUNC_ECHO
+    Email\Session::DEFAULT_READ_TIMEOUT, Email\Connection::LOGFUNC_ECHO
 ))->onEmailReceived(function(Email\Email $email, bool $sender_authenticated)
     {
         $subject = ($email->getSubject() ?: "(no subject)");
@@ -48,7 +48,11 @@ Email\Email::basic(
     /* Subject: */ "Saying hello to the world",
     new Email\ContentTextPlain("Hello, world!")
 )->sign(new Email\DkimKey("php", "file://".__DIR__."/dkim-private.pem"))
- ->sendToRecipient(Email\Client::DEFAULT_TIMEOUT, Email\Connection::LOGFUNC_ECHO);
+ ->sendToRecipient(
+     Email\Client::DEFAULT_CONNECT_TIMEOUT,
+     Email\Client::DEFAULT_READ_TIMEOUT,
+     Email\Connection::LOGFUNC_ECHO
+   );
 Asyncore\Asyncore::loop();
 ```
 
