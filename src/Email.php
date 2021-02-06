@@ -86,8 +86,14 @@ class Email extends Section
 	function getCanonicalizedHeaders(string $canonicalization, array $headers): string
 	{
 		$data = "";
+		$included = ["DKIM-Signature" => true];
 		foreach($headers as $header)
 		{
+			if(array_key_exists($header, $included))
+			{
+				continue;
+			}
+			$included[$header] = true;
 			if($this->hasHeader($header))
 			{
 				$data .= $this->getCanonicalizedHeader($canonicalization, $header)."\r\n";
