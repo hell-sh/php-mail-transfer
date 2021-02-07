@@ -34,6 +34,10 @@ class Server
 	 */
 	var $on_session_start;
 	/**
+	 * @var callable|null $on_session_end
+	 */
+	var $on_session_end;
+	/**
 	 * @var bool $supports_encryption
 	 */
 	var $supports_encryption;
@@ -102,6 +106,12 @@ class Server
 		return $this;
 	}
 
+	function onSessionEnd(callable $function): self
+	{
+		$this->on_session_end = $function;
+		return $this;
+	}
+
 	function onEmailReceived(callable $function): self
 	{
 		$this->on_email_received = $function;
@@ -130,6 +140,10 @@ class Server
 				$session->open_condition->onFalse(function() use ($session)
 				{
 					$this->clients->detach($session);
+					if(is_callable($this->on_session_end))
+					{
+						($this->on_session_end)($session);
+					}
 				});
 			}
 		}
