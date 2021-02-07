@@ -154,7 +154,7 @@ class Client extends Connection
 				$this->endLoop();
 				if($ret !== true)
 				{
-					$this->fail($on_fail, Fail::STARTTLS_FAILED, "stream_socket_enable_crypto returned $ret");
+					$this->fail($on_fail, Fail::STARTTLS_FAILED, "stream_socket_enable_crypto returned ".strval($ret));
 					return;
 				}
 				$crypto_data = stream_get_meta_data($this->stream)["crypto"];

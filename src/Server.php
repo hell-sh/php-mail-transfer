@@ -180,7 +180,7 @@ class Server
 				}
 				if($ret !== true)
 				{
-					$client->log(Connection::LOGPREFIX_FAIL, "stream_socket_enable_crypto returned $ret");
+					$client->log(Connection::LOGPREFIX_FAIL, "stream_socket_enable_crypto returned ".strval($ret));
 					$client->close();
 					continue;
 				}
