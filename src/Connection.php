@@ -105,6 +105,10 @@ class Connection
 	{
 		if(is_resource($this->stream))
 		{
+			if($this instanceof Client)
+			{
+				fwrite($this->stream, "QUIT\r\n");
+			}
 			@fclose($this->stream);
 			$this->stream = false;
 		}

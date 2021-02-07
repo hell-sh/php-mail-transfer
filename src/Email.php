@@ -394,11 +394,13 @@ class Email extends Section
 		{
 			$con->smartHandshake(function() use (&$status, $con)
 			{
-				$con->sendEmail($this, function() use (&$status)
+				$con->sendEmail($this, function() use (&$status, $con)
 				{
+					$con->close();
 					$status = self::SEND_OK;
-				}, function(Fail $fail) use (&$status)
+				}, function(Fail $fail) use (&$status, $con)
 				{
+					$con->close();
 					if($fail->type == Fail::RATE_LIMITED
 						|| ($fail->type == FAIL::UNEXPECTED_RESPONSE && substr($fail->extra, 0, 1) == "4"))
 					{
