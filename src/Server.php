@@ -32,6 +32,10 @@ class Server
 	 */
 	var $clients;
 	/**
+	 * @var callable|null $on_session_start
+	 */
+	var $on_session_start;
+	/**
 	 * @var bool $supports_encryption
 	 */
 	var $supports_encryption;
@@ -90,6 +94,12 @@ class Server
 		$this->clients = new SplObjectStorage();
 	}
 
+	function onSessionStart(callable $function): self
+	{
+		$this->on_session_start = $function;
+		return $this;
+	}
+
 	function onEmailReceived(callable $function): self
 	{
 		$this->on_email_received = $function;
@@ -103,6 +113,10 @@ class Server
 			while(($client = @stream_socket_accept($stream, 0)) !== false)
 			{
 				$session = new Session($client, $this->session_read_timeout, $this->session_log_line_function);
+				if(is_callable($this->on_session_start))
+				{
+					($this->on_session_start)($session);
+				}
 				$session->writeLine("220 ".Machine::getHostname());
 				$this->clients->attach($session);
 				$session->open_condition->onFalse(function() use ($session)
