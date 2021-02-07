@@ -62,7 +62,7 @@ class Address
 		{
 			try
 			{
-				return new Client($server, $connect_timeout, $read_timeout, $log_line_function);
+				return new Client($server, 25, $connect_timeout, $read_timeout, $log_line_function);
 			}
 			catch(ExceptionConnectionNotEstablished $e)
 			{

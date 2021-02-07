@@ -5,24 +5,15 @@ class Client extends Connection
 	const DEFAULT_CONNECT_TIMEOUT = 2;
 	const DEFAULT_READ_TIMEOUT = 10;
 
-	function __construct(string $server, int $connect_read_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
+	function __construct(string $address, int $port, int $connect_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
 	{
-		parent::__construct($server, $read_timeout, $log_line_function);
-		if(!$this->open(25, $errstr_25, $connect_read_timeout))
+		parent::__construct("$address:$port", $read_timeout, $log_line_function);
+		$this->stream = @fsockopen($this->remote_name, $port, $errno, $errstr, $connect_timeout);
+		if(!$this->stream)
 		{
-			if(!$this->open(587, $errstr_587, $connect_read_timeout))
-			{
-				if($errstr_25 == $errstr_587)
-				{
-					throw new ExceptionConnectionNotEstablished("Failed to connect to $server on both ports: ".$errstr_25);
-				}
-				throw new ExceptionConnectionNotEstablished(
-					"Failed to connect to $server on both ports:".PHP_EOL.
-					"- 25: $errstr_25".PHP_EOL.
-					"- 587: $errstr_587"
-				);
-			}
+			throw new ExceptionConnectionNotEstablished("Failed to connect to {$this->remote_name}: $errstr ($errno)");
 		}
+		$this->log(self::LOGPREFIX_BIDIR, "Connection established");
 		stream_set_blocking($this->stream, true);
 		$this->initStream();
 		$response = "";
@@ -39,19 +30,6 @@ class Client extends Connection
 			$this->close();
 			throw new ExceptionConnectionNotEstablished($response);
 		}
-	}
-
-	private function open(int $port, &$errstr, int $connect_timeout): bool
-	{
-		$this->stream = @fsockopen($this->remote_name, $port, $errno, $errstr, $connect_timeout);
-		if(!$this->stream)
-		{
-			$errstr .= " ($errno)";
-			return false;
-		}
-		$this->remote_name .= ":$port";
-		$this->log(self::LOGPREFIX_BIDIR, "Connection established");
-		return true;
 	}
 
 	private function readResponse(callable $callback, ?callable $on_fail): void

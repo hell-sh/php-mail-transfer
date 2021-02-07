@@ -25,7 +25,7 @@ The only reason I'm publishing this so early is so that I can build a custom ser
 require "vendor/autoload.php";
 (new Email\Server(
     __DIR__."/fullchain.pem", __DIR__."/privkey.pem",
-    Email\Server::BIND_ADDR_ALL, Email\Server::BIND_PORT_DEFAULT,
+    Email\Server::BIND_ADDR_ALL, [25],
     Email\Session::DEFAULT_READ_TIMEOUT, Email\Connection::LOGFUNC_ECHO
 ))->onEmailReceived(function(Email\Email $email, bool $authenticated, Email\Session $sender)
     {

@@ -11,8 +11,6 @@ class Server
 	const BIND_ADDR_ALL_IP6 = ["::"];
 	const BIND_ADDR_LOCAL = ["127.0.0.1", "::1"];
 
-	const BIND_PORT_DEFAULT = [25, 587];
-
 	const METHOD_PASSES_REQUIRED = 1;
 
 	/**
@@ -52,7 +50,7 @@ class Server
 	 */
 	var $on_email_rejected = null;
 
-	function __construct(?string $public_key_file = null, ?string $private_key_file = null, array $bind_addresses = self::BIND_ADDR_ALL, array $bind_ports = self::BIND_PORT_DEFAULT, int $session_read_timeout = Session::DEFAULT_READ_TIMEOUT, ?callable $session_log_line_function = Connection::LOGFUNC_NONE)
+	function __construct(?string $public_key_file = null, ?string $private_key_file = null, array $bind_addresses = self::BIND_ADDR_ALL, array $bind_ports = [25], int $session_read_timeout = Session::DEFAULT_READ_TIMEOUT, ?callable $session_log_line_function = Connection::LOGFUNC_NONE)
 	{
 		$this->streams = [];
 		$this->supports_encryption = $public_key_file && $private_key_file;
