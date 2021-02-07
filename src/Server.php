@@ -363,7 +363,7 @@ class Server
 								$methods_passed++;
 							}
 						}
-						array_push($dkim_results, $dkim_results);
+						array_push($dkim_results, $dkim_result);
 					}
 					$dkim_result = join(";", $dkim_results) ?: "not present";
 
