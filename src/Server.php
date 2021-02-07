@@ -322,6 +322,7 @@ class Server
 					$email->setHeader("X-Authenticity", $authenticity);
 					if(is_callable($this->on_email_received))
 					{
+						$client->log(Connection::LOGPREFIX_INFO, $authenticity);
 						$client->writeLine("250");
 						($this->on_email_received)($email, $methods_passed >= self::METHOD_PASSES_REQUIRED);
 					}
