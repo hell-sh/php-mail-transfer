@@ -59,7 +59,7 @@ Asyncore\Asyncore::loop();
 
 *So you can properly send emails.*
 
-First, make sure you're on a public machine with forward-confirmed reverse DNS records for IPv4 & IPv6 (or to put it more generally, any IP that your machine may use for outgoing connection). If this is not the case, there might be all sorts of subtle issues.
+First, make sure you're on a public machine with forward-confirmed reverse DNS records for IPv4 & IPv6 (or to put it more generally, any IP that your machine may use for outgoing connections). If this is not the case, there might be all sorts of subtle issues.
 
 Next, use openssl via the terminal to generate an RSA keypair for DKIM:
 
