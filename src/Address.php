@@ -68,7 +68,7 @@ class Address
 			{
 				if(is_callable($log_line_function))
 				{
-					$log_line_function($e->getMessage());
+					$log_line_function(null, $e->getMessage());
 				}
 			}
 		}
