@@ -84,6 +84,7 @@ class Server
 					$stream = stream_socket_server($address.$bind_port, $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create([
 						"ssl" => [
 							"verify_peer" => false,
+							"verify_peer_name" => false,
 							"allow_self_signed" => true,
 							"local_cert" => $public_key_file,
 							"local_pk" => $private_key_file,
