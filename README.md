@@ -13,7 +13,6 @@ The only reason I'm publishing this so early is so that I can build a custom ser
 - Multipart Content
   - Attachments
 - DKIM Subdomain Considerations
-- DNSBL: https://www.spamhaus.org/faq/section/DNSBL%20Usage
 - Server: Dynamic & static SIZE
 
 ## Examples
@@ -35,6 +34,14 @@ require "vendor/autoload.php";
     })
   ->loop();
 ```
+
+#### Anti-Spam
+
+While SPF, DKIM and DMARC are all great at preventing spoofing, the real problem is spam, and there is no 100% effective method to address it on the server, but blacklists are by far the most promising.
+
+- If you want to go all-out on not only blocking spam but also teaching ISPs that turn a blind eye a lesson, [UCEPROTECT](https://www.uceprotect.net/) is the way to go: `$server->setBlocklists(["dnsbl-1.uceprotect.net", "dnsbl-2.uceprotect.net", "dnsbl-3.uceprotect.net"]);`
+    - If that's too extreme for you, consider only using their Level 1 or 2 lists.
+- If you want to be more pragmatic, [JustSpam.org](http://www.justspam.org/) seems good for blocking just spam: `$server->setBlocklists(["dnsbl.justspam.org"]);`
 
 ### Client
 

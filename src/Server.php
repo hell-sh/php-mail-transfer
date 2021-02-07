@@ -11,6 +11,9 @@ class Server
 	const BIND_ADDR_ALL_IP6 = ["::"];
 	const BIND_ADDR_LOCAL = ["127.0.0.1", "::1"];
 
+	const REJECT_BLOCKLIST = "blocklist";
+	const REJECT_POLICY = "policy";
+
 	const METHOD_PASSES_REQUIRED = 1;
 
 	/**
@@ -45,6 +48,10 @@ class Server
 	 * @var bool $require_encryption
 	 */
 	var $require_encryption = false;
+	/**
+	 * @var array $blocklists
+	 */
+	var $blocklists = [];
 	/**
 	 * @var callable|null $on_email_received
 	 */
@@ -109,6 +116,12 @@ class Server
 	function onSessionEnd(callable $function): self
 	{
 		$this->on_session_end = $function;
+		return $this;
+	}
+
+	function setBlocklists(array $array): self
+	{
+		$this->blocklists = $array;
 		return $this;
 	}
 
@@ -290,6 +303,25 @@ class Server
 					}
 					$client->rcpt_to = "";
 
+					$query = $client->getRemoteAddress();
+					if(strpos($query, ".") !== false)
+					{
+						$query = join(".", array_reverse(explode(".", $query))).".";
+						foreach($this->blocklists as $blocklist)
+						{
+							$result = dns_get_record($query.$blocklist, DNS_TXT);
+							if($result)
+							{
+								$client->writeLine("550 ".$result[0]["txt"]);
+								if(is_callable($this->on_email_rejected))
+								{
+									($this->on_email_rejected)($email, $client, Server::REJECT_BLOCKLIST);
+								}
+								continue 2;
+							}
+						}
+					}
+
 					$methods_passed = 0;
 					$uses_dmarc = false;
 					$dmarc_policy_is_reject = false;
@@ -359,7 +391,7 @@ class Server
 						$client->writeLine("550 Authentication failed ($authenticity) and DMARC ".($dmarc_policy_is_reject ? "policy is reject" : "is unused"));
 						if(is_callable($this->on_email_rejected))
 						{
-							($this->on_email_rejected)($email, $client);
+							($this->on_email_rejected)($email, $client, Server::REJECT_POLICY);
 						}
 						continue;
 					}
