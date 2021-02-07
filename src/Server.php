@@ -247,9 +247,14 @@ class Server
 							}
 							break;
 						case "MAIL":
+							if(!$client->helo_domain)
+							{
+								$client->writeLine("503 Send EHLO/HELO first");
+								break;
+							}
 							if($this->require_encryption && !$client->isEncrypted())
 							{
-								$client->writeLine("503");
+								$client->writeLine("503 Send STARTTLS first");
 								break;
 							}
 							if(substr($command[1], 0, 6) != "FROM:<" || substr($command[1], -1) != ">")
@@ -261,7 +266,7 @@ class Server
 							$client->writeLine("250");
 							break;
 						case "RCPT":
-							if(!$client->helo_domain)
+							if(!$client->mail_from)
 							{
 								$client->writeLine("503");
 								break;
