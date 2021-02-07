@@ -298,8 +298,7 @@ class Server
 						/** @noinspection PhpUnhandledExceptionInspection */
 						$spf_result = (new Checker())->check(new Environment($client->getRemoteAddress(), $client->helo_domain, $email->getSender()))->getCode();
 						if($spf_result == Result::CODE_PASS
-							|| ($uses_dmarc && ($spf_result == Result::CODE_NONE || $spf_result == Result::CODE_PASS))
-						)
+							|| ($uses_dmarc && ($spf_result == Result::CODE_NONE || $spf_result == Result::CODE_PASS)))
 						{
 							$methods_passed++;
 						}
