@@ -12,7 +12,7 @@ class Email extends Section
 	 */
 	var $content;
 
-	function __construct(array $headers, ?Content $content = null)
+	function __construct(array $headers = [], ?Content $content = null)
 	{
 		parent::__construct($headers);
 		$this->content = $content;
@@ -44,9 +44,14 @@ class Email extends Section
 		return $this->headers;
 	}
 
+	function setDate(int $timestamp): self
+	{
+		return $this->setHeader("Date", date(DATE_RFC2822, $timestamp));
+	}
+
 	function getDate(): int
 	{
-		$dt = DateTime::createFromFormat(DATE_RFC2822, $this->getHeader(""));
+		$dt = DateTime::createFromFormat(DATE_RFC2822, $this->getHeader("Date"));
 		if($dt instanceof DateTime)
 		{
 			return $dt->getTimestamp();

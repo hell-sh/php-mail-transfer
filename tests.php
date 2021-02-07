@@ -75,6 +75,13 @@ function testUnfoldableHeader()
 	}
 }
 
+function testDate()
+{
+	$email = new Email();
+	$email->setDate(1337);
+	Nose::assertEquals($email->getDate(), 1337);
+}
+
 function testLookups()
 {
 	// With MX Record
