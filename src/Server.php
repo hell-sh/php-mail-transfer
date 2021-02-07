@@ -211,7 +211,7 @@ class Server
 					switch($command[0])
 					{
 						default:
-							$client->writeLine("500");
+							$client->writeLine("500 Command unknown");
 							break;
 						case "HELO":
 							$client->helo_domain = $command[1];
@@ -229,7 +229,7 @@ class Server
 						case "STARTTLS":
 							if($this->supports_encryption)
 							{
-								$client->writeLine("220");
+								$client->writeLine("220 Go ahead");
 								$ret = stream_socket_enable_crypto($client->stream, true, STREAM_CRYPTO_METHOD_ANY_SERVER);
 								if($ret === 0)
 								{
@@ -243,7 +243,7 @@ class Server
 							}
 							else
 							{
-								$client->writeLine("502");
+								$client->writeLine("502 Not supported");
 							}
 							break;
 						case "MAIL":
@@ -259,34 +259,34 @@ class Server
 							}
 							if(substr($command[1], 0, 6) != "FROM:<" || substr($command[1], -1) != ">")
 							{
-								$client->writeLine("501");
+								$client->writeLine("501 Bad argument");
 								break;
 							}
 							$client->mail_from = substr($command[1], 6, -1);
-							$client->writeLine("250");
+							$client->writeLine("250 Ok");
 							break;
 						case "RCPT":
 							if(!$client->mail_from)
 							{
-								$client->writeLine("503");
+								$client->writeLine("503 Send MAIL first");
 								break;
 							}
 							if(substr($command[1], 0, 4) != "TO:<" || substr($command[1], -1) != ">")
 							{
-								$client->writeLine("501");
+								$client->writeLine("501 Bad argument");
 								break;
 							}
 							$client->rcpt_to = substr($command[1], 4, -1);
-							$client->writeLine("250");
+							$client->writeLine("250 Ok");
 							break;
 						case "DATA":
 							if(!$client->rcpt_to)
 							{
-								$client->writeLine("503");
+								$client->writeLine("503 Send RCPT first");
 								break;
 							}
 							$client->data = "";
-							$client->writeLine("354");
+							$client->writeLine("354 Go ahead");
 							break;
 						case "QUIT":
 							$client->close();
