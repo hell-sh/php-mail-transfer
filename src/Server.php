@@ -337,7 +337,7 @@ class Server
 					{
 						$client->log(Connection::LOGPREFIX_INFO, $authenticity);
 						$client->writeLine("250");
-						($this->on_email_received)($email, $methods_passed >= self::METHOD_PASSES_REQUIRED);
+						($this->on_email_received)($email, $methods_passed >= self::METHOD_PASSES_REQUIRED, $client);
 					}
 					else
 					{

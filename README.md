@@ -29,10 +29,10 @@ require "vendor/autoload.php";
     __DIR__."/fullchain.pem", __DIR__."/privkey.pem",
     Email\Server::BIND_ADDR_ALL, Email\Server::BIND_PORT_DEFAULT,
     Email\Session::DEFAULT_READ_TIMEOUT, Email\Connection::LOGFUNC_ECHO
-))->onEmailReceived(function(Email\Email $email, bool $sender_authenticated)
+))->onEmailReceived(function(Email\Email $email, bool $authenticated, Email\Session $sender)
     {
         $subject = ($email->getSubject() ?: "(no subject)");
-        $authentication_state = ($sender_authenticated ? "Authenticated" : "Unauthenticated");
+        $authentication_state = ($authenticated ? "Authenticated" : "Unauthenticated");
         echo "Received \"$subject\" from {$email->getSender()} ($authentication_state)".PHP_EOL;
     })
   ->loop();
