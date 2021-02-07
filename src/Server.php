@@ -47,6 +47,10 @@ class Server
 	 * @var callable|null $on_email_received
 	 */
 	var $on_email_received = null;
+	/**
+	 * @var callable|null $on_email_rejected
+	 */
+	var $on_email_rejected = null;
 
 	function __construct(?string $public_key_file = null, ?string $private_key_file = null, array $bind_addresses = self::BIND_ADDR_ALL, array $bind_ports = self::BIND_PORT_DEFAULT, int $session_read_timeout = Session::DEFAULT_READ_TIMEOUT, ?callable $session_log_line_function = Connection::LOGFUNC_NONE)
 	{
@@ -103,6 +107,12 @@ class Server
 	function onEmailReceived(callable $function): self
 	{
 		$this->on_email_received = $function;
+		return $this;
+	}
+
+	function onEmailRejected(callable $function): self
+	{
+		$this->on_email_rejected = $function;
 		return $this;
 	}
 
@@ -330,6 +340,10 @@ class Server
 					if($methods_passed < self::METHOD_PASSES_REQUIRED && $reject_on_pass_failure)
 					{
 						$client->writeLine("550 Authentication failed ($authenticity) and DMARC ".($dmarc_policy_is_reject ? "policy is reject" : "is unused"));
+						if(is_callable($this->on_email_rejected))
+						{
+							($this->on_email_rejected)($email, $client);
+						}
 						continue;
 					}
 					$email->setHeader("X-Authenticity", $authenticity);
