@@ -126,9 +126,14 @@ class Connection
 		}
 	}
 
+	function defaultLogLineFormat(string $line): string
+	{
+		return "[".number_format(microtime(true) - $this->constructed_at, 3)."s] {$this->remote_name} $line";
+	}
+
 	static function impl_LOGFUNC_ECHO(Connection $con, string $line): void
 	{
-		echo "[".number_format(microtime(true) - $con->constructed_at, 3)."s] {$con->remote_name} $line".PHP_EOL;
+		echo $con->defaultLogLineFormat($line).PHP_EOL;
 	}
 
 	function fail(?callable $on_fail, int $fail_type, string $fail_extra = ""): void
