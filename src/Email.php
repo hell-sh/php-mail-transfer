@@ -76,12 +76,12 @@ class Email extends Section
 
 	function getRecipient(): ?Address
 	{
-		$from = $this->getFirstHeaderValue("To");
-		if($from === null)
+		$to = $this->getFirstHeaderValue("To");
+		if($to === null)
 		{
 			return null;
 		}
-		return new Address($from);
+		return new Address($to);
 	}
 
 	function getRecipients(): array
