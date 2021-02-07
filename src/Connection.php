@@ -121,14 +121,14 @@ class Connection
 		{
 			foreach(explode("\r\n", $message) as $line)
 			{
-				($this->log_line_function)("[".number_format(microtime(true) - $this->constructed_at, 3)."s] {$this->remote_name} $prefix $line");
+				($this->log_line_function)($this, $prefix." ".$line);
 			}
 		}
 	}
 
-	static function impl_LOGFUNC_ECHO(string $line): void
+	static function impl_LOGFUNC_ECHO(Connection $con, string $line): void
 	{
-		echo $line.PHP_EOL;
+		echo "[".number_format(microtime(true) - $con->constructed_at, 3)."s] {$con->remote_name} $line".PHP_EOL;
 	}
 
 	function fail(?callable $on_fail, int $fail_type, string $fail_extra = ""): void
