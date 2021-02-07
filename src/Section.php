@@ -37,15 +37,26 @@ abstract class Section
 	function setHeader(string $key, string $value): self
 	{
 		$search = strtolower($key).":";
-		foreach($this->headers as &$header)
+		$found = false;
+		foreach($this->headers as $i => &$header)
 		{
 			if(strtolower(substr($header, 0, strlen($search))) == $search)
 			{
-				$header = self::normaliseHeaderCasing($key).": ".$value;
-				return $this;
+				if($found)
+				{
+					unset($this->headers[$i]);
+				}
+				else
+				{
+					$header = self::normaliseHeaderCasing($key).": ".$value;
+					$found = true;
+				}
 			}
 		}
-		array_push($this->headers, self::normaliseHeaderCasing($key).": ".$value);
+		if(!$found)
+		{
+			array_push($this->headers, self::normaliseHeaderCasing($key).": ".$value);
+		}
 		return $this;
 	}
 
