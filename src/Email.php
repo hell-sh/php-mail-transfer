@@ -21,25 +21,25 @@ class Email extends Section
 	static function init(Content $content, array $headers = []): Email
 	{
 		return new Email([
-			"Date" => date(DATE_RFC2822),
-			"MIME-Version" => "1.0"
+			"Date: ".date(DATE_RFC2822),
+			"MIME-Version: 1.0",
 		] + $headers, $content);
 	}
 
 	static function basic(Address $sender, Address $recipient, string $subject, Content $content): Email
 	{
 		return Email::init($content, [
-			"From" => $sender->__toString(),
-			"To" => $recipient->__toString(),
-			"Subject" => $subject
+			"From: ".$sender->__toString(),
+			"To: ".$recipient->__toString(),
+			"Subject: ".$subject,
 		]);
 	}
 
-	function getEffectiveHeaders(): array
+	function getAllHeaders(): array
 	{
 		if($this->content instanceof Content)
 		{
-			return $this->content->headers + $this->headers;
+			return array_merge($this->content->headers, $this->headers);
 		}
 		return $this->headers;
 	}
@@ -51,7 +51,7 @@ class Email extends Section
 
 	function getDate(): int
 	{
-		$dt = DateTime::createFromFormat(DATE_RFC2822, $this->getHeader("Date"));
+		$dt = DateTime::createFromFormat(DATE_RFC2822, $this->getFirstHeaderValue("Date"));
 		if($dt instanceof DateTime)
 		{
 			return $dt->getTimestamp();
@@ -59,14 +59,34 @@ class Email extends Section
 		return 0;
 	}
 
-	function getSender(): Address
+	function getSender(): ?Address
 	{
-		return new Address($this->getHeader("From"));
+		$from = $this->getFirstHeaderValue("From");
+		if($from === null)
+		{
+			return null;
+		}
+		return new Address($from);
 	}
 
-	function getRecipient(): Address
+	function getSenders(): array
 	{
-		return new Address($this->getHeader("To"));
+		return array_map('new Address', $this->getHeaderValues("From"));
+	}
+
+	function getRecipient(): ?Address
+	{
+		$from = $this->getFirstHeaderValue("To");
+		if($from === null)
+		{
+			return null;
+		}
+		return new Address($from);
+	}
+
+	function getRecipients(): array
+	{
+		return array_map('new Address', $this->getHeaderValues("To"));
 	}
 
 	function setSubject(string $subject): self
@@ -76,35 +96,35 @@ class Email extends Section
 
 	function getSubject(): string
 	{
-		return $this->getHeader("Subject");
+		return $this->getFirstHeaderValue("Subject");
 	}
 
-	function getCanonicalizedHeader(string $canonicalization, string $key): string
+	static function canonicalizeHeader(string $canonicalization, string $key, string $value): string
 	{
 		if($canonicalization == "simple")
 		{
-			return self::normaliseHeaderCasing($key).": ".$this->getHeader($key);
+			return self::normaliseHeaderCasing($key).": ".$value;
 		}
-		return strtolower($key).":".trim(preg_replace("/\s+/", " ", $this->getHeader($key)));
+		return strtolower($key).":".trim(preg_replace("/\s+/", " ", $value));
 	}
 
-	function getCanonicalizedHeaders(string $canonicalization, array $headers): string
+	function getCanonicalizedHeaders(string $canonicalization, array $signed_headers, string $partial_dkim_signature): string
 	{
 		$data = "";
-		$included = ["DKIM-Signature" => true];
-		foreach($headers as $header)
+		$header_count = [];
+		foreach($signed_headers as $key)
 		{
-			if(array_key_exists($header, $included))
+			if(!array_key_exists($key, $header_count))
 			{
-				continue;
+				$header_count[$key] = 0;
 			}
-			$included[$header] = true;
-			if($this->hasHeader($header))
+			$value = @$this->getHeaderValues($key)[$header_count[$key]++];
+			if($value !== null)
 			{
-				$data .= $this->getCanonicalizedHeader($canonicalization, $header)."\r\n";
+				$data .= self::canonicalizeHeader($canonicalization, $key, $value)."\r\n";
 			}
 		}
-		$data .= $this->getCanonicalizedHeader($canonicalization, "DKIM-Signature");
+		$data .= self::canonicalizeHeader($canonicalization, "DKIM-Signature", $partial_dkim_signature);
 		return $data;
 	}
 
@@ -133,12 +153,12 @@ class Email extends Section
 	{
 		$time = time();
 		$domain = $this->getSender()->getDomain();
-		$this->headers["DKIM-Signature"] =
+		$dkim_signature =
 			"v=1; a=rsa-sha256; q=dns/txt; s=".$key->selector."; t=$time; c=relaxed/simple; ".
 			"h=".join(":", $headers_to_sign)."; d=$domain; ".
 			"bh=".base64_encode(pack("H*", hash("sha256", $this->getCanonicalizedBody("simple"))))."; ".
 			"b=";
-		$this->headers["DKIM-Signature"] .= $key->sign($this->getCanonicalizedHeaders("relaxed", $headers_to_sign), OPENSSL_ALGO_SHA256);
+		$this->setHeader("DKIM-Signature", $key->sign($this->getCanonicalizedHeaders("relaxed", $headers_to_sign,$dkim_signature), OPENSSL_ALGO_SHA256));
 		return $this;
 	}
 
@@ -151,11 +171,6 @@ class Email extends Section
 			$out[trim($kv_pair[0])] = trim($kv_pair[1] ?? "");
 		}
 		return $out;
-	}
-
-	function getDkimData(): array
-	{
-		return self::parseKeyValuePairs($this->getHeader("DKIM-Signature"));
 	}
 
 	static function getTxtRecords(string $query): array
@@ -212,9 +227,9 @@ class Email extends Section
 		return $reject_reasons;
 	}
 
-	function verifyDkimSignature(): string
+	function verifyDkimSignature(string $dkim_signature): string
 	{
-		$dkim_data = $this->getDkimData();
+		$dkim_data = self::parseKeyValuePairs($dkim_signature);
 		foreach(["a", "b", "bh", "d", "h", "s"] as $tag)
 		{
 			if(!array_key_exists($tag, $dkim_data))
@@ -291,10 +306,7 @@ class Email extends Section
 				return "no public key found";
 			}
 		}
-		$og_value = $this->headers["DKIM-Signature"];
-		$this->headers["DKIM-Signature"] = substr($this->headers["DKIM-Signature"], 0, strpos($this->headers["DKIM-Signature"], "b=".$dkim_data["b"]) + 2);
-		$signed_data = $this->getCanonicalizedHeaders($canonicalizations[0], explode(":", $dkim_data["h"]));
-		$this->headers["DKIM-Signature"] = $og_value;
+		$signed_data = $this->getCanonicalizedHeaders($canonicalizations[0], explode(":", $dkim_data["h"]), substr($dkim_signature, 0, strpos($dkim_signature, "b=".$dkim_data["b"]) + 2));
 		$verify_res = openssl_verify($signed_data, base64_decode($dkim_data["b"]), $pub, $dkim_data["a"] == "rsa-sha256" ? OPENSSL_ALGO_SHA256 : OPENSSL_ALGO_SHA1);
 		if(PHP_MAJOR_VERSION < 8)
 		{
@@ -315,12 +327,12 @@ class Email extends Section
 	function getSmtpData(int $line_length = 78): string
 	{
 		$data = "";
-		foreach($this->getEffectiveHeaders() as $key => $value)
+		foreach($this->getAllHeaders() as $header)
 		{
 			$safe_line = "";
 			$line = "";
 			$cr = false;
-			foreach(str_split("$key: $value") as $c)
+			foreach(str_split($header) as $c)
 			{
 				if($c == "\r")
 				{
@@ -426,33 +438,21 @@ class Email extends Section
 
 	private static function fromData2(string $headers, string $body): Email
 	{
-		$email = new Email(self::headersFromData($headers));
-		$encoding = null;
-		if($email->getHeader("Content-Transfer-Encoding"))
+		$email = new Email(explode("\r\n", $headers));
+		$encoding = $email->getFirstHeaderValue("Content-Transfer-Encoding");
+		if($encoding !== null)
 		{
-			$encoding = Encoding::fromName($email->getHeader("Content-Transfer-Encoding"));
+			$encoding = Encoding::fromName($encoding);
 		}
-		$encoding = $encoding ?? EncodingSevenbit::class;
+		if($encoding === null)
+		{
+			$encoding = EncodingSevenbit::class;
+		}
 		$email->content = new ContentText(
 			call_user_func($encoding.'::decode', $body),
-			$email->getHeader("Content-Type") ?: "text/plain",
+			$email->getFirstHeaderValue("Content-Type") ?? "text/plain",
 			$encoding
 		);
 		return $email;
-	}
-
-	static function headersFromData(string $data): array
-	{
-		$headers = [];
-		foreach(explode("\r\n", $data) as $line)
-		{
-			if(empty($line))
-			{
-				continue;
-			}
-			$arr = explode(": ", $line, 2);
-			$headers[$arr[0]] = $arr[1] ?? "";
-		}
-		return $headers;
 	}
 }

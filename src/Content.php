@@ -2,7 +2,7 @@
 namespace Email;
 abstract class Content extends Section
 {
-	function getEffectiveHeaders(): array
+	function getAllHeaders(): array
 	{
 		return $this->headers;
 	}

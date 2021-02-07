@@ -304,18 +304,23 @@ class Server
 						}
 					}
 
-					if($email->hasHeader("DKIM-Signature"))
+					$dkim_signatures = $email->getHeaderValues("DKIM-Signature");
+					$dkim_passed = false;
+					$dkim_results = [];
+					foreach($dkim_signatures as $dkim_signature)
 					{
-						$dkim_result = $email->verifyDkimSignature();
+						$dkim_result = $email->verifyDkimSignature($dkim_signature);
+						if($dkim_result == "pass")
+						{
+							if(!$dkim_passed)
+							{
+								$dkim_passed = true;
+								$methods_passed++;
+							}
+						}
+						array_push($dkim_results, $dkim_results);
 					}
-					else
-					{
-						$dkim_result = "not present";
-					}
-					if($dkim_result == "pass")
-					{
-						$methods_passed++;
-					}
+					$dkim_result = join(";", $dkim_results) ?: "not present";
 
 					if($methods_passed < self::METHOD_PASSES_REQUIRED)
 					{

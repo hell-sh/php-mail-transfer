@@ -12,7 +12,7 @@ abstract class Section
 		$this->headers = $headers;
 	}
 
-	abstract function getEffectiveHeaders(): array;
+	abstract function getAllHeaders(): array;
 
 	static function normaliseHeaderCasing(string $key): string
 	{
@@ -36,30 +36,63 @@ abstract class Section
 
 	function setHeader(string $key, string $value): self
 	{
-		$this->headers[self::normaliseHeaderCasing($key)] = $value;
+		$search = strtolower($key).":";
+		foreach($this->headers as &$header)
+		{
+			if(strtolower(substr($header, 0, strlen($search))) == $search)
+			{
+				$header = self::normaliseHeaderCasing($key).": ".$value;
+				return $this;
+			}
+		}
+		array_push($this->headers, self::normaliseHeaderCasing($key).": ".$value);
 		return $this;
 	}
 
 	function hasHeader(string $key): bool
 	{
-		return array_key_exists(self::normaliseHeaderCasing($key), $this->getEffectiveHeaders());
+		$search = strtolower($key).":";
+		foreach($this->headers as $header)
+		{
+			if(substr($header, 0, strlen($search)) == $search)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
-	function getHeader(string $key): string
+	function getFirstHeaderValue(string $key): ?string
 	{
-		return $this->getEffectiveHeaders()[self::normaliseHeaderCasing($key)] ?? "";
+		$search = strtolower($key).":";
+		foreach($this->headers as $header)
+		{
+			if(strtolower(substr($header, 0, strlen($search))) == $search)
+			{
+				return trim(substr($header, strlen($search)));
+			}
+		}
+		return null;
+	}
+
+	function getHeaderValues(string $key): array
+	{
+		$search = strtolower($key).":";
+		$values = [];
+		foreach($this->headers as $header)
+		{
+			if(strtolower(substr($header, 0, strlen($search))) == $search)
+			{
+				array_push($values, trim(substr($header, strlen($search))));
+			}
+		}
+		return $values;
 	}
 
 	abstract function getBody(): string;
 
 	function getData(): string
 	{
-		$data = "";
-		foreach($this->getEffectiveHeaders() as $key => $value)
-		{
-			$data .= "$key: $value\r\n";
-		}
-		$data .= "\r\n".$this->getBody();
-		return $data;
+		return join("\r\n", $this->getAllHeaders())."\r\n\r\n".$this->getBody();
 	}
 }
