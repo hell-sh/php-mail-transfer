@@ -41,6 +41,5 @@ class Session extends Connection
 		parent::__construct($addr.":".$port, $read_timeout, $log_line_function);
 		$this->last_command = $this->constructed_at;
 		$this->initStream();
-		$this->log(self::LOGPREFIX_BIDIR, "Connection established");
 	}
 }

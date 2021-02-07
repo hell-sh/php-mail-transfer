@@ -148,6 +148,7 @@ class Server
 				{
 					($this->on_session_start)($session);
 				}
+				$session->log(Connection::LOGPREFIX_BIDIR, "Connection established");
 				$session->writeLine("220 ".Machine::getHostname());
 				$this->clients->attach($session);
 				$session->open_condition->onFalse(function() use ($session)
