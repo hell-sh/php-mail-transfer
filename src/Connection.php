@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 namespace Email;
 use Asyncore\
 {Asyncore, Condition, Loop};
