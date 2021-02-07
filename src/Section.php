@@ -60,6 +60,19 @@ abstract class Section
 		return $this;
 	}
 
+	function removeHeader(string $key): self
+	{
+		$search = strtolower($key).":";
+		foreach($this->headers as $i => &$header)
+		{
+			if(strtolower(substr($header, 0, strlen($search))) == $search)
+			{
+				unset($this->headers[$i]);
+			}
+		}
+		return $this;
+	}
+
 	function hasHeader(string $key): bool
 	{
 		$search = strtolower($key).":";
