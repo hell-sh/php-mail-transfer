@@ -172,7 +172,12 @@ class Server
 			/**
 			 * @var Session $client
 			 */
-			if($client->starting_tls)
+			if($client->censys)
+			{
+				$client->last_command = microtime(true);
+				$client->writeLine("250-STARTTLS");
+			}
+			else if($client->starting_tls)
 			{
 				$ret = stream_socket_enable_crypto($client->stream, true, STREAM_CRYPTO_METHOD_ANY_SERVER);
 				if($ret === 0)
@@ -219,14 +224,22 @@ class Server
 							$client->writeLine("250 ".Machine::getHostname());
 							break;
 						case "EHLO":
-							$client->helo_domain = $command[1];
-							$client->reset();
 							$client->writeLine("250-".Machine::getHostname());
-							if($this->supports_encryption)
+							if($command[1] == "www.censys.io")
 							{
-								$client->writeLine("250-STARTTLS");
+								$client->log_line_function = Connection::LOGFUNC_NONE;
+								$client->censys = true;
 							}
-							$client->writeLine("250 SMTPUTF8");
+							else
+							{
+								$client->helo_domain = $command[1];
+								$client->reset();
+								if($this->supports_encryption)
+								{
+									$client->writeLine("250-STARTTLS");
+								}
+								$client->writeLine("250 SMTPUTF8");
+							}
 							break;
 						case "STARTTLS":
 							if($this->supports_encryption)

@@ -9,6 +9,10 @@ class Session extends Connection
 	 */
 	var $last_command;
 	/**
+	 * @var bool $censys
+	 */
+	var $censys = false;
+	/**
 	 * @var string $helo_domain
 	 */
 	var $helo_domain = "";
