@@ -158,7 +158,7 @@ class Email extends Section
 			"h=".join(":", $headers_to_sign)."; d=$domain; ".
 			"bh=".base64_encode(pack("H*", hash("sha256", $this->getCanonicalizedBody("simple"))))."; ".
 			"b=";
-		$this->setHeader("DKIM-Signature", $dkim_signature.$key->sign($this->getCanonicalizedHeaders("relaxed", $headers_to_sign,$dkim_signature), OPENSSL_ALGO_SHA256));
+		$this->addHeader("DKIM-Signature", $dkim_signature.$key->sign($this->getCanonicalizedHeaders("relaxed", $headers_to_sign,$dkim_signature), OPENSSL_ALGO_SHA256));
 		return $this;
 	}
 
