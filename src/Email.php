@@ -393,6 +393,10 @@ class Email extends Section
 			$email->getFirstHeaderValue("Content-Type") ?? "text/plain",
 			$encoding
 		);
+		foreach($email->content->getAllHeaderKeys() as $key)
+		{
+			$email->removeHeader($key);
+		}
 		return $email;
 	}
 }

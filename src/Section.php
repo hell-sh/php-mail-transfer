@@ -34,6 +34,27 @@ abstract class Section
 		return join("-", $words);
 	}
 
+	function getAllHeaderKeys(): array
+	{
+		$headers = $this->getAllHeaders();
+		foreach($headers as &$header)
+		{
+			$header = self::normaliseHeaderCasing(substr($header, 0, strpos($header, ":")));
+		}
+		return $headers;
+	}
+
+	function getAllHeaderKeyValuePairs(): array
+	{
+		$headers = [];
+		foreach($this->getAllHeaders() as $header)
+		{
+			$header = explode(":", $header, 2);
+			$headers[self::normaliseHeaderCasing($header[0])] = $header[1];
+		}
+		return $headers;
+	}
+
 	function addHeader(string $key, string $value): self
 	{
 		array_unshift($this->headers, self::normaliseHeaderCasing($key).": ".$value);
