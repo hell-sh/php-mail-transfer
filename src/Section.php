@@ -34,6 +34,12 @@ abstract class Section
 		return join("-", $words);
 	}
 
+	function addHeader(string $key, string $value): self
+	{
+		array_unshift($this->headers, self::normaliseHeaderCasing($key).": ".$value);
+		return $this;
+	}
+
 	function setHeader(string $key, string $value): self
 	{
 		$search = strtolower($key).":";
@@ -55,7 +61,7 @@ abstract class Section
 		}
 		if(!$found)
 		{
-			array_push($this->headers, self::normaliseHeaderCasing($key).": ".$value);
+			return $this->addHeader($key, $value);
 		}
 		return $this;
 	}

@@ -319,6 +319,7 @@ class Server
 					$client->rcpt_to = "";
 
 					$query = $client->getRemoteAddress();
+					$email->addHeader("Received", "from $query (".gethostbyaddr($query).") by ".Machine::getHostname()." on ".date(DATE_RFC2822));
 					if(strpos($query, ".") !== false)
 					{
 						$query = join(".", array_reverse(explode(".", $query))).".";
