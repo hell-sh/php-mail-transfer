@@ -11,8 +11,10 @@ class Server
 	const BIND_ADDR_ALL_IP6 = ["::"];
 	const BIND_ADDR_LOCAL = ["127.0.0.1", "::1"];
 
-	const REJECT_BLOCKLIST = "blocklist";
-	const REJECT_POLICY = "policy";
+	const CLASSIFICATION_LEGIT = "legit";
+	const CLASSIFICATION_NEUTRAL = "neutral";
+	const CLASSIFICATION_SPOOFING = "spoofing";
+	const CLASSIFICATION_SPAM = "spam";
 
 	const METHOD_PASSES_REQUIRED = 1;
 
@@ -56,10 +58,6 @@ class Server
 	 * @var callable|null $on_email_received
 	 */
 	var $on_email_received = null;
-	/**
-	 * @var callable|null $on_email_rejected
-	 */
-	var $on_email_rejected = null;
 
 	function __construct(?string $public_key_file = null, ?string $private_key_file = null, array $bind_addresses = self::BIND_ADDR_ALL, array $bind_ports = [25], int $session_read_timeout = Session::DEFAULT_READ_TIMEOUT, ?callable $session_log_line_function = Connection::LOGFUNC_NONE)
 	{
@@ -129,12 +127,6 @@ class Server
 	function onEmailReceived(callable $function): self
 	{
 		$this->on_email_received = $function;
-		return $this;
-	}
-
-	function onEmailRejected(callable $function): self
-	{
-		$this->on_email_rejected = $function;
 		return $this;
 	}
 
@@ -331,6 +323,11 @@ class Server
 					}
 					$client->rcpt_to = "";
 
+					$classification = Server::CLASSIFICATION_LEGIT;
+					$blocklists_result = "not listed";
+					$dkim_result = "not checked";
+					$spf_result = "not checked";
+
 					$query = $client->getRemoteAddress();
 					$email->addHeader("Received", "from $query (".gethostbyaddr($query).") by ".Machine::getHostname()." on ".date(DATE_RFC2822));
 					if(strpos($query, ".") !== false)
@@ -341,99 +338,85 @@ class Server
 							$result = dns_get_record($query.$blocklist, DNS_TXT);
 							if($result)
 							{
-								$client->writeLine("550 ".$result[0]["txt"]);
-								if(is_callable($this->on_email_rejected))
-								{
-									($this->on_email_rejected)($email, $client, Server::REJECT_BLOCKLIST);
-								}
-								continue 2;
+								$classification = Server::CLASSIFICATION_SPAM;
+								$blocklists_result = $result[0]["txt"];
+								break;
 							}
 						}
 					}
+					$email->addHeader("X-Blocklists-Result", $blocklists_result);
+					$client->writeLine("250-Blocklists Result: ".$blocklists_result);
 
-					$methods_passed = 0;
-					$uses_dmarc = false;
-					$dmarc_policy_is_reject = false;
-					$reject_on_pass_failure = false;
-					foreach(Email::getTxtRecords("_dmarc.".$email->getSender()->getDomain()) as $txt)
+					if($blocklists_result == "not listed")
 					{
-						if(substr($txt, 0, 9) == "v=DMARC1;")
+						$methods_passed = 0;
+						$uses_dmarc = false;
+						$reject_on_pass_failure = false;
+						foreach(Email::getTxtRecords("_dmarc.".$email->getSender()->getDomain()) as $txt)
 						{
-							$dmarc = Email::parseKeyValuePairs(substr($txt, 9));
-							if(!array_key_exists("p", $dmarc))
+							if(substr($txt, 0, 9) == "v=DMARC1;")
 							{
-								continue;
-							}
-							if($dmarc["p"] != "none")
-							{
-								$uses_dmarc = true;
-								if($dmarc["p"] == "reject")
+								$dmarc = Email::parseKeyValuePairs(substr($txt, 9));
+								if(!array_key_exists("p", $dmarc))
 								{
-									$dmarc_policy_is_reject = true;
-									$reject_on_pass_failure = true;
+									continue;
+								}
+								if($dmarc["p"] != "none")
+								{
+									$uses_dmarc = true;
+									if($dmarc["p"] == "reject")
+									{
+										$reject_on_pass_failure = true;
+									}
+								}
+								break;
+							}
+						}
+						$dkim_signatures = $email->getHeaderValues("DKIM-Signature");
+						$dkim_passed = false;
+						$dkim_results = [];
+						foreach($dkim_signatures as $dkim_signature)
+						{
+							$dkim_result = $email->verifyDkimSignature($dkim_signature);
+							if($dkim_result == "pass")
+							{
+								if(!$dkim_passed)
+								{
+									$dkim_passed = true;
+									$methods_passed++;
 								}
 							}
-							break;
+							array_push($dkim_results, $dkim_result);
 						}
-					}
-
-					$dkim_signatures = $email->getHeaderValues("DKIM-Signature");
-					$dkim_passed = false;
-					$dkim_results = [];
-					foreach($dkim_signatures as $dkim_signature)
-					{
-						$dkim_result = $email->verifyDkimSignature($dkim_signature);
-						if($dkim_result == "pass")
+						$dkim_result = join(";", $dkim_results) ?: "not present";
+						if($methods_passed < Server::METHOD_PASSES_REQUIRED)
 						{
-							if(!$dkim_passed)
+							/** @noinspection PhpUnhandledExceptionInspection */
+							$spf_result = (new Checker())->check(new Environment($client->getRemoteAddress(), $client->helo_domain, $email->getSender()))->getCode();
+							if($spf_result == Result::CODE_PASS || ($uses_dmarc && ($spf_result == Result::CODE_NONE || $spf_result == Result::CODE_PASS)))
 							{
-								$dkim_passed = true;
 								$methods_passed++;
 							}
+							if(!$uses_dmarc && $spf_result == Result::CODE_FAIL)
+							{
+								$reject_on_pass_failure = true;
+							}
 						}
-						array_push($dkim_results, $dkim_result);
-					}
-					$dkim_result = join(";", $dkim_results) ?: "not present";
 
-					if($methods_passed < self::METHOD_PASSES_REQUIRED)
-					{
-						/** @noinspection PhpUnhandledExceptionInspection */
-						$spf_result = (new Checker())->check(new Environment($client->getRemoteAddress(), $client->helo_domain, $email->getSender()))->getCode();
-						if($spf_result == Result::CODE_PASS
-							|| ($uses_dmarc && ($spf_result == Result::CODE_NONE || $spf_result == Result::CODE_PASS)))
+						if($methods_passed < Server::METHOD_PASSES_REQUIRED)
 						{
-							$methods_passed++;
-						}
-						if(!$uses_dmarc && $spf_result == Result::CODE_FAIL)
-						{
-							$reject_on_pass_failure = true;
+							$classification = $reject_on_pass_failure ? Server::CLASSIFICATION_SPOOFING : Server::CLASSIFICATION_NEUTRAL;
 						}
 					}
-					else
-					{
-						$spf_result = "not checked";
-					}
-
 					$authenticity = "DKIM=$dkim_result; SPF=$spf_result";
-					if($methods_passed < self::METHOD_PASSES_REQUIRED && $reject_on_pass_failure)
-					{
-						$client->writeLine("550 Authentication failed ($authenticity) and DMARC ".($dmarc_policy_is_reject ? "policy is reject" : "is unused"));
-						if(is_callable($this->on_email_rejected))
-						{
-							($this->on_email_rejected)($email, $client, Server::REJECT_POLICY);
-						}
-						continue;
-					}
-					$email->setHeader("X-Authenticity", $authenticity);
+					$email->addHeader("X-Authenticity", $authenticity);
+					$client->writeLine("250-Authenticity: $authenticity");
+
+					$email->addHeader("X-Classification", $classification);
+					$client->writeLine("250 Classification: $classification");
 					if(is_callable($this->on_email_received))
 					{
-						$client->log(Connection::LOGPREFIX_INFO, $authenticity);
-						$client->writeLine("250");
-						($this->on_email_received)($email, $methods_passed >= self::METHOD_PASSES_REQUIRED, $client);
-					}
-					else
-					{
-						$client->writeLine("550 No \"on email received\" function was defined, so I can't deliver your email, but I can tell you your authenticity: $authenticity");
+						($this->on_email_received)($email, $client);
 					}
 				}
 				else

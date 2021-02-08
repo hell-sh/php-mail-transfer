@@ -26,11 +26,11 @@ require "vendor/autoload.php";
     __DIR__."/fullchain.pem", __DIR__."/privkey.pem",
     Email\Server::BIND_ADDR_ALL, [25],
     Email\Session::DEFAULT_READ_TIMEOUT, Email\Connection::LOGFUNC_ECHO
-))->onEmailReceived(function(Email\Email $email, bool $authenticated, Email\Session $sender)
+))->onEmailReceived(function(Email\Email $email, Email\Session $sender)
     {
         $subject = ($email->getSubject() ?: "(no subject)");
-        $authentication_state = ($authenticated ? "Authenticated" : "Unauthenticated");
-        echo "Received \"$subject\" from {$email->getSender()} ($authentication_state)".PHP_EOL;
+        $classification = $email->getFirstHeaderValue("X-Classification");
+        echo "Received \"$subject\" from {$email->getSender()} ($classification)".PHP_EOL;
     })
   ->loop();
 ```
