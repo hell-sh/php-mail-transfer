@@ -305,7 +305,7 @@ class Server
 				{
 					$email = Email::fromSmtpData($client->data);
 					$client->data = null;
-					if($email->getSender()->address != $client->mail_from)
+					if($email->getSender()->address != $client->mail_from && !$email->hasHeader("Received"))
 					{
 						$client->writeLine("550 From mismatch");
 						continue;
