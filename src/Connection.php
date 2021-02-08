@@ -210,8 +210,14 @@ class Connection
 	function writeLine(string $line): self
 	{
 		$this->log(self::LOGPREFIX_LEFT, $line);
-		fwrite($this->stream, $line."\r\n");
-		$this->flush();
+		if(fwrite($this->stream, $line."\r\n") === false)
+		{
+			$this->close();
+		}
+		else
+		{
+			$this->flush();
+		}
 		return $this;
 	}
 
