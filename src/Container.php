@@ -1,6 +1,6 @@
 <?php /** @noinspection PhpUnused */
 namespace Email;
-abstract class Section
+abstract class Container
 {
 	/**
 	 * @var array $headers

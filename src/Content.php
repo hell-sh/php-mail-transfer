@@ -1,6 +1,6 @@
 <?php
 namespace Email;
-abstract class Content extends Section
+abstract class Content extends Container
 {
 	function getAllHeaders(): array
 	{

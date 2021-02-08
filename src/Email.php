@@ -1,7 +1,7 @@
 <?php /** @noinspection PhpUnused */
 namespace Email;
 use DateTime;
-class Email extends Section
+class Email extends Container
 {
 	const SEND_OK = 0;
 	const SEND_TEMP_FAIL = 1;
