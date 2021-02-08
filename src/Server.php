@@ -245,12 +245,16 @@ class Server
 								if($ret === 0)
 								{
 									$client->starting_tls = true;
+									break;
 								}
-								else if($ret !== true)
+								if($ret !== true)
 								{
 									$client->log(Connection::LOGPREFIX_FAIL, "stream_socket_enable_crypto returned ".strval($ret));
 									$client->close();
+									break 2;
 								}
+								$crypto_data = stream_get_meta_data($client->stream)["crypto"];
+								$client->log(Connection::LOGPREFIX_BIDIR, "Agreed on ".$crypto_data["protocol"]." using cipher ".$crypto_data["cipher_name"]);
 							}
 							else
 							{
