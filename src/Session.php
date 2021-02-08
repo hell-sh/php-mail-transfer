@@ -19,15 +19,15 @@ class Session extends Connection
 	/**
 	 * @var string $mail_from
 	 */
-	var $mail_from = "";
+	var $mail_from;
 	/**
 	 * @var string $rcpt_to
 	 */
-	var $rcpt_to = "";
+	var $rcpt_to;
 	/**
 	 * @var string|null $data
 	 */
-	var $data = null;
+	var $data;
 
 	function __construct($stream, int $read_timeout = Session::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
 	{
@@ -39,7 +39,15 @@ class Session extends Connection
 			$addr = "[$addr]";
 		}
 		parent::__construct($addr.":".$port, $read_timeout, $log_line_function);
+		$this->reset();
 		$this->last_command = $this->constructed_at;
 		$this->initStream();
+	}
+
+	function reset(): void
+	{
+		$this->mail_from = "";
+		$this->rcpt_to = "";
+		$this->data = null;
 	}
 }

@@ -215,10 +215,12 @@ class Server
 							break;
 						case "HELO":
 							$client->helo_domain = $command[1];
+							$client->reset();
 							$client->writeLine("250 ".Machine::getHostname());
 							break;
 						case "EHLO":
 							$client->helo_domain = $command[1];
+							$client->reset();
 							$client->writeLine("250-".Machine::getHostname());
 							if($this->supports_encryption)
 							{
@@ -263,7 +265,7 @@ class Server
 								break;
 							}
 							$client->mail_from = substr($command[1], 6, -1);
-							$client->writeLine("250 Ok");
+							$client->writeLine("250 OK");
 							break;
 						case "RCPT":
 							if(!$client->mail_from)
@@ -277,7 +279,7 @@ class Server
 								break;
 							}
 							$client->rcpt_to = substr($command[1], 4, -1);
-							$client->writeLine("250 Ok");
+							$client->writeLine("250 OK");
 							break;
 						case "DATA":
 							if(!$client->rcpt_to)
@@ -287,6 +289,12 @@ class Server
 							}
 							$client->data = "";
 							$client->writeLine("354 Go ahead");
+							break;
+						/** @noinspection PhpMissingBreakStatementInspection */
+						case "RSET":
+							$client->reset();
+						case "NOOP":
+							$client->writeLine("250 OK");
 							break;
 						case "QUIT":
 							$client->close();
