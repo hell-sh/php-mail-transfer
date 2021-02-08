@@ -39,7 +39,7 @@ class Email extends Container
 	{
 		if($this->content instanceof Content)
 		{
-			return array_merge($this->content->headers, $this->headers);
+			return array_merge($this->headers, $this->content->headers);
 		}
 		return $this->headers;
 	}
