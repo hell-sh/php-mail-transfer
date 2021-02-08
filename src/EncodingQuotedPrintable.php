@@ -45,24 +45,4 @@ class EncodingQuotedPrintable extends Encoding
 		$out .= substr($in, $i);
 		return $out;
 	}
-
-	static function dkim_encode(string $in): string
-	{
-		$out = "";
-		foreach(str_split($in) as $c)
-		{
-			$b = ord($c);
-			if ((0x21 <= $b && $b <= 0x3A)
-				|| $b == 0x3C
-				|| (0x3E <= $b && $b <= 0x7E /*&& $b != 0x7C*/))
-			{
-				$out .= $c;
-			}
-			else
-			{
-				$out .= "=".sprintf("%02X", $b);
-			}
-		}
-		return $out;
-	}
 }
