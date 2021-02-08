@@ -20,10 +20,10 @@ class Email extends Section
 
 	static function init(Content $content, array $headers = []): Email
 	{
-		return new Email(array_merge($headers, [
+		return new Email(array_merge([
 			"Date: ".date(DATE_RFC2822),
 			"MIME-Version: 1.0",
-		]), $content);
+		], $headers), $content);
 	}
 
 	static function basic(Address $sender, Address $recipient, string $subject, Content $content): Email
