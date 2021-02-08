@@ -69,7 +69,7 @@ abstract class Section
 	function removeHeader(string $key): self
 	{
 		$search = strtolower($key).":";
-		foreach($this->headers as $i => &$header)
+		foreach($this->headers as $i => $header)
 		{
 			if(strtolower(substr($header, 0, strlen($search))) == $search)
 			{
