@@ -5,7 +5,7 @@ class Client extends Connection
 	const DEFAULT_CONNECT_TIMEOUT = 2;
 	const DEFAULT_READ_TIMEOUT = 10;
 
-	function __construct(string $address, int $port, int $connect_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
+	function __construct(string $address, int $port = 25, int $connect_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE)
 	{
 		parent::__construct("$address:$port", $read_timeout, $log_line_function);
 		$this->stream = @fsockopen($this->remote_name, $port, $errno, $errstr, $connect_timeout);
