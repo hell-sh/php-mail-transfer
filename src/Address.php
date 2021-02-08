@@ -15,11 +15,11 @@ class Address
 	{
 		if($name === null)
 		{
-			$i = strpos($address, " <");
+			$i = strpos($address, "<");
 			if($i !== false)
 			{
-				$this->name = substr($address, 0, $i);
-				$this->address = substr($address, $i + 2, -1);
+				$this->name = trim(substr($address, 0, $i));
+				$this->address = trim(substr($address, $i + 1, -1));
 				return;
 			}
 		}

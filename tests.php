@@ -17,6 +17,7 @@ function testAddressParsing()
 	Nose::assertEquals($address->__toString(), $str);
 	Nose::assertEquals($address->name, "Test");
 	Nose::assertEquals($address->address, "nobody@hell.sh");
+	Nose::assertEquals((new Address("<nobody@hell.sh>"))->address, "nobody@hell.sh");
 }
 
 function testHeaderCasing()
