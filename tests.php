@@ -12,12 +12,14 @@ function testEncodingAndDecoding()
 
 function testAddressParsing()
 {
-	$str = "Test <nobody@hell.sh>";
+	// DO NOT SEND EMAILS TO php-mail-transfer@nirvana.admins.ws
+	// This is a trap for spam crawlers!
+	$str = "Test <php-mail-transfer@nirvana.admins.ws>";
 	$address = new Address($str, null);
 	Nose::assertEquals($address->__toString(), $str);
 	Nose::assertEquals($address->name, "Test");
-	Nose::assertEquals($address->address, "nobody@hell.sh");
-	Nose::assertEquals((new Address("<nobody@hell.sh>"))->address, "nobody@hell.sh");
+	Nose::assertEquals($address->address, "php-mail-transfer@nirvana.admins.ws");
+	Nose::assertEquals((new Address("<php-mail-transfer@nirvana.admins.ws>"))->address, "php-mail-transfer@nirvana.admins.ws");
 }
 
 function testHeaderCasing()
