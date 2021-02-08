@@ -16,6 +16,11 @@ class Server
 	const CLASSIFICATION_SPOOFING = "spoofing";
 	const CLASSIFICATION_SPAM = "spam";
 
+	const NON_SENDERS = [
+		"www.censys.io",
+		"outbound.hardenize.com",
+	];
+
 	const METHOD_PASSES_REQUIRED = 1;
 
 	/**
@@ -164,12 +169,7 @@ class Server
 			/**
 			 * @var Session $client
 			 */
-			if($client->censys)
-			{
-				$client->last_command = microtime(true);
-				$client->writeLine("250-STARTTLS");
-			}
-			else if($client->starting_tls)
+			if($client->starting_tls)
 			{
 				$ret = stream_socket_enable_crypto($client->stream, true, STREAM_CRYPTO_METHOD_ANY_SERVER);
 				if($ret === 0)
@@ -211,27 +211,31 @@ class Server
 							$client->writeLine("500 Command unknown");
 							break;
 						case "HELO":
+							if(in_array($command[1], self::NON_SENDERS))
+							{
+								$client->writeLine("550 Fuck off");
+								$client->close();
+								break 2;
+							}
 							$client->helo_domain = $command[1];
 							$client->reset();
 							$client->writeLine("250 ".Machine::getHostname());
 							break;
 						case "EHLO":
+							if(in_array($command[1], self::NON_SENDERS))
+							{
+								$client->writeLine("550 Fuck off");
+								$client->close();
+								break 2;
+							}
+							$client->helo_domain = $command[1];
+							$client->reset();
 							$client->writeLine("250-".Machine::getHostname());
-							if($command[1] == "www.censys.io")
+							if($this->supports_encryption)
 							{
-								$client->log_line_function = Connection::LOGFUNC_NONE;
-								$client->censys = true;
+								$client->writeLine("250-STARTTLS");
 							}
-							else
-							{
-								$client->helo_domain = $command[1];
-								$client->reset();
-								if($this->supports_encryption)
-								{
-									$client->writeLine("250-STARTTLS");
-								}
-								$client->writeLine("250 SMTPUTF8");
-							}
+							$client->writeLine("250 SMTPUTF8");
 							break;
 						case "STARTTLS":
 							if($this->supports_encryption)
