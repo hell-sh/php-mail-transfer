@@ -21,7 +21,7 @@ function testEncodedWords()
 {
 	foreach([
 		"=?UTF-8?B?VGhpcyBpcyBhIGhvcnNleTog8J+Qjg==?=",
-		"=?UTF-8?Q?This is a horsey: =F0=9F=90=8E?=",
+		"=?UTF-8?Q?This_is_a_horsey:_=F0=9F=90=8E?=",
 	] as $subject)
 	{
 		$email = new Email([

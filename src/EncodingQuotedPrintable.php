@@ -70,4 +70,9 @@ class EncodingQuotedPrintable extends EncodingWord
 		$out .= substr($in, $i);
 		return $out;
 	}
+
+	static function decodeWord(string $in): string
+	{
+		return str_replace("_", " ", self::decode($in));
+	}
 }

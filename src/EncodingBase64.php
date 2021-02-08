@@ -21,4 +21,9 @@ class EncodingBase64 extends EncodingWord
 	{
 		return base64_decode($in);
 	}
+
+	static function decodeWord(string $in): string
+	{
+		return base64_decode($in);
+	}
 }
