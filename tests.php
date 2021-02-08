@@ -1,13 +1,19 @@
-<?php /** @noinspection PhpUnused PhpUnhandledExceptionInspection */
+<?php /** @noinspection PhpUnused PhpUnhandledExceptionInspection PhpRedundantOptionalArgumentInspection */
 namespace Email;
 require "vendor/autoload.php";
 use Nose;
-function testEncodingAndDecoding()
+function testQuotedPrintable()
 {
-	Nose::assertEquals(EncodingQuotedPrintable::encode("Hêlló, wörld!"), "H=C3=AAll=C3=B3, w=C3=B6rld!");
-	Nose::assertEquals(EncodingQuotedPrintable::decode("H=C3=AAll=C3=B3, w=C3=B6rld!"), "Hêlló, wörld!");
-	Nose::assertEquals(EncodingBase64::encode("Hêlló, wörld!"), "SMOqbGzDsywgd8O2cmxkIQ==");
-	Nose::assertEquals(EncodingBase64::decode("SMOqbGzDsywgd8O2cmxkIQ=="), "Hêlló, wörld!");
+	foreach([
+		"Hêlló, wörld!",
+		"Hello,\r\nworld!",
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // 76 characters
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // 77 characters
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaö", // 75 characters + special character
+	] as $sample)
+	{
+		Nose::assertEquals($sample, EncodingQuotedPrintable::decode(EncodingQuotedPrintable::encode($sample)));
+	}
 }
 
 function testAddressParsing()

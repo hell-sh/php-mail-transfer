@@ -7,27 +7,38 @@ class EncodingQuotedPrintable extends Encoding
 		return "quoted-printable";
 	}
 
+	private static function ensureSpace(string &$out, string &$line, int $length_limit)
+	{
+		if(strlen($line) > $length_limit)
+		{
+			$out .= substr($line, 0, $length_limit)."=\r\n";
+			$line = substr($line, $length_limit);
+		}
+	}
+
 	static function encode(string $in): string
 	{
 		$out = "";
+		$line = "";
 		foreach(str_split($in) as $c)
 		{
 			$b = ord($c);
-			if(($b < 32 || $b > 126 || $b == 61) && $b != 9)
+			if(($b >= 33 && $b <= 60) || ($b >= 62 && $b <= 126) || $b == 9 || $b == 10 || $b == 13 || $b == 32)
 			{
-				$out .= "=".sprintf("%02X", $b);
+				self::ensureSpace($out, $line, 75);
+				$line .= $c;
 			}
 			else
 			{
-				$out .= $c;
+				self::ensureSpace($out, $line, 72);
+				$line .= "=".sprintf("%02X", $b);
 			}
 		}
-		return $out;
+		return $out.$line;
 	}
 
 	static function decode(string $in): string
 	{
-		$in = str_replace(["\r", "\n"], "", $in);
 		$i = $j = 0;
 		$out = "";
 		do
@@ -38,7 +49,16 @@ class EncodingQuotedPrintable extends Encoding
 				break;
 			}
 			$out .= substr($in, $i, $j - $i);
-			$out .= chr(hexdec(substr($in, $j + 1, 2)));
+			$hex = substr($in, $j + 1, 2);
+			if(strlen($hex) != 2)
+			{
+				$out .= $hex;
+				break;
+			}
+			if($hex != "\r\n")
+			{
+				$out .= chr(hexdec($hex));
+			}
 			$i = $j + 3;
 		}
 		while(true);

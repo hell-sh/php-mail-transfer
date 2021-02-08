@@ -125,4 +125,63 @@ abstract class Section
 	{
 		return join("\r\n", $this->getAllHeaders())."\r\n\r\n".$this->getBody();
 	}
+
+	function getSmtpData(int $line_length = 78): string
+	{
+		$data = "";
+		foreach($this->getAllHeaders() as $header)
+		{
+			$safe_line = "";
+			$line = "";
+			$cr = false;
+			foreach(str_split($header) as $c)
+			{
+				if($c == "\r")
+				{
+					$cr = true;
+					continue;
+				}
+				if($cr)
+				{
+					$cr = false;
+					if($c == "\n")
+					{
+						$data .= $safe_line.$line."\r\n";
+						$safe_line = "";
+						$line = "";
+						continue;
+					}
+				}
+				if($c == " " || $c == "\t")
+				{
+					$safe_line .= $line;
+					$line = "";
+				}
+				$line .= $c;
+				if($safe_line && strlen($safe_line) + strlen($line) >= $line_length)
+				{
+					$data .= $safe_line."\r\n";
+					$safe_line = "";
+				}
+			}
+			$data .= $safe_line.$line."\r\n";
+		}
+		$data .= "\r\n";
+		foreach(explode("\r\n", $this->getBody()) as $row)
+		{
+			$i = 0;
+			while(strlen($row) > $i)
+			{
+				$line = substr($row, $i, $line_length);
+				if(substr($line, 0, 1) == ".")
+				{
+					$data .= ".";
+				}
+				$data .= $line;
+				$data .= "\r\n";
+				$i += $line_length;
+			}
+		}
+		return $data;
+	}
 }

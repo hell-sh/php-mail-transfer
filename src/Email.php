@@ -324,68 +324,6 @@ class Email extends Section
 		return $this->content instanceof Content ? $this->content->getBody() : "";
 	}
 
-	function getSmtpData(int $line_length = 78): string
-	{
-		$data = "";
-		foreach($this->getAllHeaders() as $header)
-		{
-			$safe_line = "";
-			$line = "";
-			$cr = false;
-			foreach(str_split($header) as $c)
-			{
-				if($c == "\r")
-				{
-					$cr = true;
-					continue;
-				}
-				if($cr)
-				{
-					$cr = false;
-					if($c == "\n")
-					{
-						$data .= $safe_line.$line."\r\n";
-						$safe_line = "";
-						$line = "";
-						continue;
-					}
-				}
-				if($c == " " || $c == "\t")
-				{
-					$safe_line .= $line;
-					$line = "";
-				}
-				$line .= $c;
-				if($safe_line && strlen($safe_line) + strlen($line) >= $line_length)
-				{
-					$data .= $safe_line."\r\n";
-					$safe_line = "";
-				}
-			}
-			$data .= $safe_line.$line."\r\n";
-		}
-		$data .= "\r\n";
-		if($this->content instanceof Content)
-		{
-			foreach(explode("\r\n", $this->content->getBody()) as $row)
-			{
-				$i = 0;
-				while(strlen($row) > $i)
-				{
-					$line = substr($row, $i, $line_length);
-					if(substr($line, 0, 1) == ".")
-					{
-						$data .= ".";
-					}
-					$data .= $line;
-					$data .= "\r\n";
-					$i += $line_length;
-				}
-			}
-		}
-		return $data;
-	}
-
 	function sendToRecipient(int $connect_timeout = Client::DEFAULT_CONNECT_TIMEOUT, int $read_timeout = Client::DEFAULT_READ_TIMEOUT, ?callable $log_line_function = Connection::LOGFUNC_NONE): int
 	{
 		$status = self::SEND_PERM_FAIL;
@@ -434,7 +372,7 @@ class Email extends Section
 		}
 		return Email::fromData2(
 			str_replace(["\r\n ", "\r\n\t"], [" ", "\t"], substr($data, 0, $header_i)),
-			substr($data, $header_i + 4)
+			substr($data, $header_i + 4, -2)
 		);
 	}
 

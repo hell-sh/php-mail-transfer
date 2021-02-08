@@ -89,3 +89,15 @@ Finally, set up the DNS records:
     - `reject`: Deny it
     - `quarantine`: Put it in spam
     - `none`: Allow it
+
+---
+
+Some of the RFCs that have been referenced in the development of this software:
+
+- [RFC 2045 - MIME](https://tools.ietf.org/html/rfc2045)
+- [RFC 4871 - DKIM](https://tools.ietf.org/html/rfc4871)
+- [RFC 5321 - ESMTP](https://tools.ietf.org/html/rfc5321)
+- [RFC 5322 - Internet Message Format](https://tools.ietf.org/html/rfc5322)
+- [RFC 7489 - DMARC](https://tools.ietf.org/html/rfc7489)
+
+SPF is implemented by [mlocati/spf-lib](https://github.com/mlocati/spf-lib), published under the MIT license.
