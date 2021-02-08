@@ -116,7 +116,9 @@ class Connection
 
 	function getRemoteAddress(): string
 	{
-		return explode(":", $this->remote_name, 2)[0];
+		$arr = explode(":", $this->remote_name);
+		array_pop($arr);
+		return join(":", $arr);
 	}
 
 	function log(string $prefix, string $message): void

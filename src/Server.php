@@ -328,11 +328,17 @@ class Server
 					$dkim_result = "not checked";
 					$spf_result = "not checked";
 
-					$query = $client->getRemoteAddress();
-					$email->addHeader("Received", "from $query (".gethostbyaddr($query).") by ".Machine::getHostname()." on ".date(DATE_RFC2822));
-					if(strpos($query, ".") !== false)
+					$remote_addr = $client->getRemoteAddress();
+					$remote_addr_is_ipv4 = strpos($remote_addr, ".") !== false;
+					if(!$remote_addr_is_ipv4)
 					{
-						$query = join(".", array_reverse(explode(".", $query))).".";
+						$remote_addr = substr($remote_addr, 1, -1);
+					}
+					$email->addHeader("Received", "from $remote_addr (".gethostbyaddr($remote_addr).") by ".Machine::getHostname()." on ".date(DATE_RFC2822));
+
+					if($remote_addr_is_ipv4)
+					{
+						$query = join(".", array_reverse(explode(".", $remote_addr))).".";
 						foreach($this->blocklists as $blocklist)
 						{
 							$result = dns_get_record($query.$blocklist, DNS_TXT);
