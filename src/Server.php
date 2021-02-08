@@ -270,10 +270,15 @@ class Server
 							}
 							if(substr($command[1], 0, 6) != "FROM:<" || substr($command[1], -1) != ">")
 							{
+								_mail_bad_arg:
 								$client->writeLine("501 Bad argument");
 								break;
 							}
 							$client->mail_from = substr($command[1], 6, -1);
+							if(!$client->mail_from)
+							{
+								goto _mail_bad_arg;
+							}
 							$client->writeLine("250 OK");
 							break;
 						case "RCPT":
@@ -284,10 +289,15 @@ class Server
 							}
 							if(substr($command[1], 0, 4) != "TO:<" || substr($command[1], -1) != ">")
 							{
+								_rcpt_bad_arg:
 								$client->writeLine("501 Bad argument");
 								break;
 							}
 							$client->rcpt_to = substr($command[1], 4, -1);
+							if(!$client->rcpt_to)
+							{
+								goto _rcpt_bad_arg;
+							}
 							$client->writeLine("250 OK");
 							break;
 						case "DATA":
