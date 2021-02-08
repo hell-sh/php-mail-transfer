@@ -1,10 +1,15 @@
 <?php
 namespace Email;
-class EncodingQuotedPrintable extends Encoding
+class EncodingQuotedPrintable extends EncodingWord
 {
 	static function getName(): string
 	{
 		return "quoted-printable";
+	}
+
+	static function getToken(): string
+	{
+		return "Q";
 	}
 
 	private static function ensureSpace(string &$out, string &$line, int $length_limit)

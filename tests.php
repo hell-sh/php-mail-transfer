@@ -2,6 +2,7 @@
 namespace Email;
 require "vendor/autoload.php";
 use Nose;
+
 function testQuotedPrintable()
 {
 	foreach([
@@ -13,6 +14,20 @@ function testQuotedPrintable()
 	] as $sample)
 	{
 		Nose::assertEquals($sample, EncodingQuotedPrintable::decode(EncodingQuotedPrintable::encode($sample)));
+	}
+}
+
+function testEncodedWords()
+{
+	foreach([
+		"=?UTF-8?B?VGhpcyBpcyBhIGhvcnNleTog8J+Qjg==?=",
+		"=?UTF-8?Q?This is a horsey: =F0=9F=90=8E?=",
+	] as $subject)
+	{
+		$email = new Email([
+			"Subject: $subject"
+		]);
+		Nose::assertEquals($email->getSubject(), "This is a horsey: \u{0001F40E}");
 	}
 }
 

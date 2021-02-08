@@ -94,7 +94,8 @@ Finally, set up the DNS records:
 
 Some of the RFCs that have been referenced in the development of this software:
 
-- [RFC 2045 - MIME](https://tools.ietf.org/html/rfc2045)
+- [RFC 2045 - MIME Pt. 1](https://tools.ietf.org/html/rfc2045)
+- [RFC 2047 - MIME Pt. 3](https://tools.ietf.org/html/rfc2047)
 - [RFC 4871 - DKIM](https://tools.ietf.org/html/rfc4871)
 - [RFC 5321 - ESMTP](https://tools.ietf.org/html/rfc5321)
 - [RFC 5322 - Internet Message Format](https://tools.ietf.org/html/rfc5322)

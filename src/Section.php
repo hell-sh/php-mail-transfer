@@ -140,6 +140,23 @@ abstract class Section
 		return $values;
 	}
 
+	static function decodeHeaderValue(string $value): string
+	{
+		if(substr($value, 0, 2) == "=?" && substr($value, -2) == "?=")
+		{
+			$arr = explode("?", substr($value, 2, -2), 3);
+			if($arr[1] == "Q")
+			{
+				return EncodingQuotedPrintable::decodeWord($arr[2]);
+			}
+			else if($arr[1] == "B")
+			{
+				return EncodingBase64::decodeWord($arr[2]);
+			}
+		}
+		return $value;
+	}
+
 	abstract function getBody(): string;
 
 	function getData(): string

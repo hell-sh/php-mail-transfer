@@ -1,10 +1,15 @@
 <?php
 namespace Email;
-class EncodingBase64 extends Encoding
+class EncodingBase64 extends EncodingWord
 {
 	static function getName(): string
 	{
 		return "base64";
+	}
+
+	static function getToken(): string
+	{
+		return "B";
 	}
 
 	static function encode(string $in): string

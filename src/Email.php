@@ -96,7 +96,7 @@ class Email extends Section
 
 	function getSubject(): string
 	{
-		return $this->getFirstHeaderValue("Subject");
+		return self::decodeHeaderValue($this->getFirstHeaderValue("Subject"));
 	}
 
 	static function canonicalizeHeader(string $canonicalization, string $key, string $value): string
