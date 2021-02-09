@@ -25,6 +25,14 @@ class DkimKey
 		$this->private_key = $private_key;
 	}
 
+	function __destruct()
+	{
+		if(PHP_MAJOR_VERSION < 8)
+		{
+			openssl_free_key($this->private_key);
+		}
+	}
+
 	function sign(string $data, int $algo): string
 	{
 		if(!openssl_sign($data, $sig, $this->private_key, $algo))
