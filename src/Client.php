@@ -146,7 +146,7 @@ class Client extends Connection
 			}
 			$this->startLoop(function() use ($callback, $on_fail): void
 			{
-				$ret = stream_socket_enable_crypto($this->stream,true, STREAM_CRYPTO_METHOD_ANY_CLIENT);
+				$ret = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_ANY_CLIENT);
 				if($ret === 0)
 				{
 					return;
