@@ -205,19 +205,30 @@ abstract class Container
 			$data .= $safe_line.$line."\r\n";
 		}
 		$data .= "\r\n";
-		foreach(explode("\r\n", $this->getBody()) as $row)
+		$body_rows = explode("\r\n", $this->getBody());
+		if(count($body_rows) > 1 || (count($body_rows) == 1 && $body_rows[0] !== ""))
 		{
-			$i = 0;
-			while(strlen($row) > $i)
+			foreach ($body_rows as $row)
 			{
-				$line = substr($row, $i, $line_length);
-				if(substr($line, 0, 1) == ".")
+				if (strlen($row) == 0)
 				{
-					$data .= ".";
+					$data .= "\r\n";
 				}
-				$data .= $line;
-				$data .= "\r\n";
-				$i += $line_length;
+				else
+				{
+					$i = 0;
+					while (strlen($row) > $i)
+					{
+						$line = substr($row, $i, $line_length);
+						if (substr($line, 0, 1) == ".")
+						{
+							$data .= ".";
+						}
+						$data .= $line;
+						$data .= "\r\n";
+						$i += $line_length;
+					}
+				}
 			}
 		}
 		return $data;
