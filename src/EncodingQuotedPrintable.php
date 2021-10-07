@@ -28,7 +28,12 @@ class EncodingQuotedPrintable extends EncodingWord
 		foreach(str_split($in) as $c)
 		{
 			$b = ord($c);
-			if(($b >= 33 && $b <= 60) || ($b >= 62 && $b <= 126) || $b == 9 || $b == 10 || $b == 13 || $b == 32)
+			if($b == 10 || $b == 13)
+			{
+				$out .= $line.$c;
+				$line = "";
+			}
+			else if(($b >= 33 && $b <= 60) || ($b >= 62 && $b <= 126) || $b == 9 || $b == 32)
 			{
 				self::ensureSpace($out, $line, 75);
 				$line .= $c;
