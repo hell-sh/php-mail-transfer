@@ -101,7 +101,7 @@ function testUnfoldableHeader()
 
 function testNlSmtpData()
 {
-	$text = "Hello,\r\n\r\nWorld.";
+	$text = "Hello, this is a more nuanced text.\r\n\r\nIn that it has multiple lines.\r\n\r\nAnd somewhat lengthy text, that isn't (too) contrived.";
 	$email = new Email();
 	$email->content = new ContentTextPlain($text);
 	$email_from_data = Email::fromSmtpData($email->getSmtpData());
