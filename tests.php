@@ -101,9 +101,11 @@ function testUnfoldableHeader()
 
 function testNlSmtpData()
 {
+	$text = "Hello,\r\n\r\nWorld.";
 	$email = new Email();
-	$email->content = new ContentTextPlain("Hello,\r\n\r\nWorld.");
-	Nose::assertEquals($email->content->getSmtpData(), "Content-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\nHello,\r\n\r\nWorld.\r\n");
+	$email->content = new ContentTextPlain($text);
+	$email_from_data = Email::fromSmtpData($email->getSmtpData());
+	Nose::assertEquals($email_from_data->content->text, $text);
 }
 
 function testDate()
